@@ -3,15 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>蝴蝶蘭黃葉病離葉接種影像標註與病斑量化系統</title>
+  <title>蝴蝶蘭黃葉病離葉接種影像標註與表現型系統 (Research Edition v2)</title>
   <style>
     :root {
-      --bg-dark: #1e1e24;
-      --bg-panel: #2b2b36;
+      --bg-dark: #18181f;
+      --bg-panel: #24242e;
+      --bg-card: #1c1c24;
       --accent: #4e80ee;
       --accent-hover: #3b6cd8;
-      --text: #e0e0e0;
-      --border: #444454;
+      --text: #e4e4eb;
+      --text-muted: #9494a8;
+      --border: #3a3a4a;
+      --success: #2ed573;
+      --warning: #ffa502;
+      --danger: #ff4757;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -22,9 +27,10 @@
       height: 100vh;
       overflow: hidden;
     }
-    
+
+    /* Layout */
     #sidebar-left {
-      width: 290px;
+      width: 280px;
       background-color: var(--bg-panel);
       border-right: 1px solid var(--border);
       display: flex;
@@ -33,27 +39,37 @@
     #main-canvas-container {
       flex: 1;
       position: relative;
-      background-color: #121215;
+      background-color: #101014;
       overflow: hidden;
       cursor: crosshair;
     }
     #sidebar-right {
-      width: 320px;
+      width: 350px;
       background-color: var(--bg-panel);
       border-left: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      padding: 15px;
-      gap: 12px;
+      padding: 14px;
+      gap: 10px;
       overflow-y: auto;
     }
 
     .section-title {
-      font-size: 0.85rem;
+      font-size: 0.78rem;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #8a8a9e;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
       margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
     }
     .btn {
       background-color: var(--accent);
@@ -62,14 +78,40 @@
       padding: 8px 12px;
       border-radius: 4px;
       cursor: pointer;
-      font-weight: bold;
-      transition: background 0.2s;
+      font-weight: 600;
+      font-size: 0.82rem;
+      transition: background 0.15s;
     }
     .btn:hover { background-color: var(--accent-hover); }
-    .btn-secondary { background-color: #4a4a5a; }
-    .btn-secondary:hover { background-color: #5a5a6a; }
-    .btn-danger { background-color: #d9534f; }
+    .btn-secondary { background-color: #3f3f4e; }
+    .btn-secondary:hover { background-color: #4f4f62; }
+    .btn-warning { background-color: #d68910; color: #fff; }
+    .btn-warning:hover { background-color: #b9770e; }
+    .btn-danger { background-color: #c0392b; }
 
+    /* Form Inputs */
+    select, input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 6px 8px;
+      background-color: #2e2e3b;
+      color: white;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 0.82rem;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    label {
+      display: block;
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+
+    /* File List */
     #file-list {
       flex: 1;
       overflow-y: auto;
@@ -78,64 +120,56 @@
     }
     #file-list li {
       padding: 8px 12px;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       border-bottom: 1px solid var(--border);
       cursor: pointer;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    #file-list li:hover { background-color: #353545; }
-    #file-list li.active { background-color: #3d3d52; border-left: 4px solid var(--accent); }
+    #file-list li:hover { background-color: #2f2f3d; }
+    #file-list li.active { background-color: #363649; border-left: 4px solid var(--accent); }
     .badge {
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       padding: 2px 6px;
       border-radius: 10px;
-      background: #555;
+      background: #4a4a5a;
     }
-    .badge-done { background: #2e7d32; }
+    .badge-done { background: #27ae60; }
 
-    .tool-group {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
-    }
+    /* Tool Selector */
     .tool-btn {
-      background: #353545;
+      background: #2e2e3b;
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 8px;
+      padding: 8px 6px;
       border-radius: 4px;
       cursor: pointer;
       text-align: center;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
+      transition: all 0.15s;
     }
     .tool-btn.active {
       border-color: var(--accent);
-      background-color: #3d3d52;
+      background-color: #36364d;
       color: white;
       font-weight: bold;
+      box-shadow: inset 0 0 0 1px var(--accent);
     }
 
-    .meta-box {
-      background-color: #20202b;
-      padding: 8px;
-      border-radius: 4px;
-      font-size: 0.8rem;
-      line-height: 1.4;
-    }
-
-    #annotation-list {
+    /* Lists */
+    .item-list {
       list-style: none;
-      max-height: 150px;
+      max-height: 120px;
       overflow-y: auto;
-      background: #20202b;
+      background: #16161d;
       border-radius: 4px;
+      border: 1px solid var(--border);
     }
-    #annotation-list li {
+    .item-list li {
       padding: 6px 8px;
-      font-size: 0.78rem;
-      border-bottom: 1px solid #2e2e3e;
+      font-size: 0.76rem;
+      border-bottom: 1px solid #262632;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -146,85 +180,153 @@
       position: absolute;
       bottom: 10px;
       left: 10px;
-      background: rgba(0,0,0,0.7);
-      padding: 4px 8px;
+      background: rgba(0, 0, 0, 0.75);
+      padding: 5px 10px;
       border-radius: 4px;
       font-size: 0.75rem;
       pointer-events: none;
+    }
+    #autosave-status {
+      font-size: 0.72rem;
+      color: var(--success);
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
   </style>
 </head>
 <body>
 
-  <!-- 左側檔案列表 -->
+  <!-- 左側：資料夾與進度管理 -->
   <div id="sidebar-left">
     <div style="padding: 12px;">
-      <div class="section-title">影像載入 (請選單一天數資料夾)</div>
+      <div class="section-title">1. 載入試驗影像與進度</div>
       <input type="file" id="folder-input" webkitdirectory directory multiple style="display:none;">
-      <button class="btn" style="width:100%; margin-bottom:6px;" onclick="document.getElementById('folder-input').click()">載入單一 DAI 資料夾</button>
+      <input type="file" id="json-input" accept=".json" style="display:none;">
+      
+      <button class="btn" style="width:100%; margin-bottom:6px;" onclick="document.getElementById('folder-input').click()">選擇單一 DAI 資料夾</button>
+      <button class="btn btn-secondary" style="width:100%;" onclick="document.getElementById('json-input').click()">匯入進度 (.json) 接續標註</button>
+      
+      <div id="autosave-status">
+        <span id="save-indicator">● 自動暫存已啟動</span>
+        <button onclick="clearLocalBackup()" style="background:none; border:none; color:#9494a8; text-decoration:underline; cursor:pointer; font-size:0.7rem;">清除暫存</button>
+      </div>
     </div>
     <ul id="file-list"></ul>
   </div>
 
-  <!-- 中間 Canvas 標註區 -->
+  <!-- 中間：高解析度互動標註畫布 -->
   <div id="main-canvas-container">
     <canvas id="main-canvas"></canvas>
-    <div id="info-overlay">縮放: <span id="zoom-level">100%</span> | 提示: 滾輪縮放，按住 Space 平移</div>
+    <div id="info-overlay">縮放: <span id="zoom-level">100%</span> | 操作: 滾輪縮放，按住 Space + 拖曳平移</div>
   </div>
 
-  <!-- 右側控制面板 -->
+  <!-- 右側：試驗欄位對齊與標註控制台 -->
   <div id="sidebar-right">
-    <div>
-      <div class="section-title">影像 Metadata</div>
-      <div class="meta-box" id="meta-display">未載入影像</div>
-    </div>
-
-    <div>
-      <div class="section-title">標註類別</div>
-      <div class="tool-group">
-        <button class="tool-btn active" data-class="leaf" onclick="setTool('leaf')">葉片 (Leaf)</button>
-        <button class="tool-btn" data-class="lesion_upper" onclick="setTool('lesion_upper')">上接種點 (Up)</button>
-        <button class="tool-btn" data-class="lesion_lower" onclick="setTool('lesion_lower')">下接種點 (Down)</button>
-        <button class="tool-btn" data-class="scale_bar" onclick="setTool('scale_bar')">比例尺 (Scale)</button>
+    
+    <!-- 試驗 Metadata 欄位對應 -->
+    <div class="card">
+      <div class="section-title">2. 試驗欄位對應 (自動解析 + 可微調)</div>
+      <div class="grid-2" style="margin-bottom: 6px;">
+        <div>
+          <label>品系 (Variety)</label>
+          <input type="text" id="meta-variety" placeholder="例: TWM-F89054">
+        </div>
+        <div>
+          <label>處理組別 (Treatment)</label>
+          <select id="meta-treatment">
+            <option value="Inoculated">Inoculated (接菌組)</option>
+            <option value="Mock">Mock (對照組)</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div>
+          <label>重複 (Repeat)</label>
+          <input type="text" id="meta-repeat" placeholder="例: 1">
+        </div>
+        <div>
+          <label>接種天數 (DAI)</label>
+          <input type="text" id="meta-dai" placeholder="例: 2">
+        </div>
       </div>
     </div>
 
-    <div>
-      <div class="section-title">綁定個體 (Individual ID)</div>
-      <select id="plant-id-select" style="width:100%; padding:6px; background:#353545; color:white; border:1px solid var(--border); border-radius:4px;">
-        <option value="">無 (比例尺)</option>
-      </select>
-    </div>
-
-    <div>
-      <div class="section-title">比例尺設定</div>
-      <div style="display:flex; gap:5px; align-items:center;">
-        <input type="number" id="scale-mm-input" value="10" style="flex:1; padding:5px; background:#353545; color:white; border:1px solid var(--border); border-radius:4px;">
-        <span style="font-size:0.8rem;">mm</span>
+    <!-- 標註類別與 ROI -->
+    <div class="card">
+      <div class="section-title">3. 選擇標註類別 (ROI / Site)</div>
+      <div class="grid-2">
+        <button class="tool-btn active" data-class="leaf" onclick="setTool('leaf')">葉片區域 (Leaf ROI)</button>
+        <button class="tool-btn" data-class="scale_bar" onclick="setTool('scale_bar')">比例尺 (Scale Bar)</button>
+        <button class="tool-btn" data-class="UP_site" onclick="setTool('UP_site')">UP_site 接種位置</button>
+        <button class="tool-btn" data-class="DOWN_site" onclick="setTool('DOWN_site')">DOWN_site 接種位置</button>
       </div>
-      <div style="font-size:0.75rem; color:#aaa; margin-top:4px;" id="scale-ratio-display">標定比: 未設定</div>
+      <div style="display:flex; gap:6px; align-items:center; margin-top:8px;">
+        <span style="font-size:0.75rem; color:var(--text-muted); white-space:nowrap;">比例尺實長:</span>
+        <input type="number" id="scale-mm-input" value="10" style="width:65px;">
+        <span style="font-size:0.75rem;">mm</span>
+        <span style="font-size:0.74rem; color:var(--success); margin-left:auto;" id="scale-ratio-display">未標定</span>
+      </div>
     </div>
 
+    <!-- 個體株號、人工 Rank 與缺株處理 -->
+    <div class="card">
+      <div class="section-title">4. 個體綁定、Rank 評分與缺株處理</div>
+      <div class="grid-2" style="margin-bottom: 8px;">
+        <div>
+          <label>個體株號 (Individual)</label>
+          <select id="plant-id-select">
+            <option value="">無 (比例尺)</option>
+          </select>
+        </div>
+        <div>
+          <label>人工 Rank (0–10)</label>
+          <select id="rank-select">
+            <option value="0">0 (無病徵)</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10 (全葉黃化/壞疽)</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-warning" style="width:100%;" onclick="markPlantMissing()">＋ 標記目前選定株號為「缺株 (Missing)」</button>
+    </div>
+
+    <!-- 標註與缺株清單 -->
     <div>
-      <div class="section-title">已標註列表</div>
-      <ul id="annotation-list"></ul>
+      <div class="section-title">5. 本張影像標註與缺株紀錄</div>
+      <ul class="item-list" id="annotation-list"></ul>
     </div>
 
+    <!-- 匯出區 -->
     <div style="margin-top:auto; display:flex; flex-direction:column; gap:6px;">
-      <button class="btn" onclick="exportYOLO()">匯出 YOLO 格式 (.txt)</button>
-      <button class="btn btn-secondary" onclick="exportCSV()">匯出對齊 Rank 的 CSV 表格</button>
-      <button class="btn btn-secondary" onclick="exportJSON()">保存標註進度 (.json)</button>
+      <button class="btn" onclick="exportCSV()">匯出總表 CSV (對齊 Variety/Repeat/Individual/Side/DAI/Rank)</button>
+      <div class="grid-2">
+        <button class="btn btn-secondary" onclick="exportYOLO()">匯出 YOLO (.txt)</button>
+        <button class="btn btn-secondary" onclick="exportJSON()">下載備份 (.json)</button>
+      </div>
     </div>
   </div>
 
   <script>
+    const STORAGE_KEY = 'orchid_annotator_autosave_v2';
     let fileList = [];
     let currentFileIndex = -1;
     let currentImage = new Image();
     let currentObjectUrl = null;
-    let annotations = {};
+    
+    // 資料結構: { [filename]: { boxes: [], missingPlants: [], meta: {}, imgWidth: 0, imgHeight: 0, pxPerMm: null } }
+    let projectData = {}; 
     let currentTool = 'leaf';
-    let pxPerMm = null;
+    let globalPxPerMm = null;
 
     const canvas = document.getElementById('main-canvas');
     const ctx = canvas.getContext('2d');
@@ -233,11 +335,74 @@
     let isDrawing = false, startX = 0, startY = 0, currentRect = null;
 
     const CLASS_MAP = {
-      'leaf': { id: 0, color: '#2ed573' },
-      'lesion_upper': { id: 1, color: '#ff4757' },
-      'lesion_lower': { id: 2, color: '#ffa502' },
-      'scale_bar': { id: 3, color: '#1e90ff' }
+      'leaf': { id: 0, color: '#2ed573', label: 'Leaf' },
+      'UP_site': { id: 1, color: '#ff4757', label: 'UP' },
+      'DOWN_site': { id: 2, color: '#ffa502', label: 'DOWN' },
+      'scale_bar': { id: 3, color: '#1e90ff', label: 'Scale' }
     };
+
+    // 啟動時自動還原瀏覽器本機暫存
+    function loadFromLocalStorage() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          projectData = JSON.parse(saved);
+          const count = Object.keys(projectData).length;
+          if (count > 0) {
+            document.getElementById('save-indicator').innerText = `● 已從本機暫存還原 ${count} 張紀錄`;
+          }
+        }
+      } catch (e) {
+        console.warn('無法讀取本機暫存:', e);
+      }
+    }
+
+    // 每次操作後自動寫入本機暫存
+    function saveToLocalStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(projectData));
+        const now = new Date().toLocaleTimeString('zh-TW', { hour12: false });
+        document.getElementById('save-indicator').innerText = `● 已自動儲存 (${now})`;
+      } catch (e) {
+        document.getElementById('save-indicator').innerText = '⚠ 本機空間已滿，請下載 JSON 備份';
+        document.getElementById('save-indicator').style.color = '#ffa502';
+      }
+    }
+
+    function clearLocalBackup() {
+      if (confirm('確定要清空瀏覽器內的自動暫存紀錄嗎？（已下載的 CSV/JSON 不會受影響）')) {
+        localStorage.removeItem(STORAGE_KEY);
+        projectData = {};
+        renderFileList();
+        renderAnnotationList();
+        draw();
+        document.getElementById('save-indicator').innerText = '● 暫存已清空';
+      }
+    }
+
+    // 匯入外部 JSON 備份檔接續標註
+    document.getElementById('json-input').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const imported = JSON.parse(ev.target.result);
+          // 合併匯入的資料與現有資料
+          projectData = { ...projectData, ...imported };
+          saveToLocalStorage();
+          renderFileList();
+          if (currentFileIndex !== -1) {
+            loadFile(currentFileIndex);
+          }
+          alert(`成功匯入 ${Object.keys(imported).length} 張影像的標註進度！\n請點選「選擇單一 DAI 資料夾」載入對應照片即可看到已畫好的框。`);
+        } catch (err) {
+          alert('JSON 檔案格式錯誤，無法讀取。');
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    });
 
     function resizeCanvas() {
       const container = document.getElementById('main-canvas-container');
@@ -247,31 +412,41 @@
     }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
+    loadFromLocalStorage();
 
+    // 載入資料夾與路徑自動解析
     document.getElementById('folder-input').addEventListener('change', (e) => {
       const files = Array.from(e.target.files).filter(f => f.type.startsWith('image/'));
-      
-      // 防呆保護：若選到過大的上層資料夾（超過100張），跳出確認視窗防止當機
+      if (files.length === 0) return;
+
       if (files.length > 100) {
-        const proceed = confirm(`偵測到您選取了 ${files.length} 張影像，這可能是上層總資料夾。一次載入過多高畫質照片可能導致網頁卡頓。\n\n建議點「取消」，並改選最內層的單一天數資料夾（如 2DAI）。確定仍要全部載入嗎？`);
-        if (!proceed) {
-          e.target.value = '';
-          return;
-        }
+        const proceed = confirm(`偵測到 ${files.length} 張影像，一次載入過多高畫質照片可能造成卡頓。\n建議點「取消」並改選單一 DAI 資料夾。確定仍要載入嗎？`);
+        if (!proceed) { e.target.value = ''; return; }
       }
 
-      fileList = files.map(f => ({ file: f, name: f.name, parsed: parseFilename(f.name) }));
+      fileList = files.map(f => ({
+        file: f,
+        name: f.name,
+        path: f.webkitRelativePath || f.name,
+        parsed: parsePathAndFilename(f.webkitRelativePath || f.name, f.name)
+      }));
+
       renderFileList();
-      if (fileList.length > 0) loadFile(0);
+      loadFile(0);
     });
 
-    function parseFilename(filename) {
+    function parsePathAndFilename(fullPath, filename) {
       const nameWithoutExt = filename.substring(0, filename.lastIndexOf('.')) || filename;
       const parts = nameWithoutExt.split('_');
       
-      let vendor = parts[0] || 'Unknown';
       let rawRange = parts[parts.length - 1] || '';
-      let line = parts.slice(1, parts.length - 1).join('_') || 'Unknown';
+      let variety = parts.slice(1, parts.length - 1).join('_') || parts[0] || 'Unknown';
+      let isMock = /mock/i.test(fullPath);
+      let treatment = isMock ? 'Mock' : 'Inoculated';
+      let repeatMatch = fullPath.match(/Repeat[_-]?(\d+)/i);
+      let repeat = repeatMatch ? repeatMatch[1] : '';
+      let daiMatch = fullPath.match(/(\d+)\s*DAI/i);
+      let dai = daiMatch ? daiMatch[1] : '';
 
       let plants = [];
       if (rawRange.includes('-')) {
@@ -283,7 +458,39 @@
         plants = rawRange.split('').map(n => n === '0' ? 10 : Number(n));
       }
 
-      return { vendor, line, plants, rawRange };
+      return { variety, repeat, dai, treatment, plants, rawRange };
+    }
+
+    ['meta-variety', 'meta-treatment', 'meta-repeat', 'meta-dai'].forEach(id => {
+      document.getElementById(id).addEventListener('input', () => {
+        if (currentFileIndex === -1) return;
+        const fname = fileList[currentFileIndex].name;
+        if (!projectData[fname]) initFileData(fname);
+        projectData[fname].meta = {
+          variety: document.getElementById('meta-variety').value,
+          treatment: document.getElementById('meta-treatment').value,
+          repeat: document.getElementById('meta-repeat').value,
+          dai: document.getElementById('meta-dai').value
+        };
+        saveToLocalStorage();
+      });
+    });
+
+    function initFileData(fname) {
+      const item = fileList.find(f => f.name === fname);
+      projectData[fname] = {
+        boxes: [],
+        missingPlants: [],
+        imgWidth: 0,
+        imgHeight: 0,
+        pxPerMm: null,
+        meta: {
+          variety: item ? item.parsed.variety : '',
+          treatment: item ? item.parsed.treatment : 'Inoculated',
+          repeat: item ? item.parsed.repeat : '',
+          dai: item ? item.parsed.dai : ''
+        }
+      };
     }
 
     function renderFileList() {
@@ -292,10 +499,11 @@
       fileList.forEach((item, index) => {
         const li = document.createElement('li');
         li.className = index === currentFileIndex ? 'active' : '';
-        const isDone = annotations[item.name] && annotations[item.name].length > 0;
+        const data = projectData[item.name];
+        const hasData = data && (data.boxes.length > 0 || data.missingPlants.length > 0);
         li.innerHTML = `
-          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:180px;">${item.name}</span>
-          <span class="badge ${isDone ? 'badge-done' : ''}">${isDone ? '已標註' : '未標註'}</span>
+          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:175px;">${item.name}</span>
+          <span class="badge ${hasData ? 'badge-done' : ''}">${hasData ? '已紀錄' : '待處理'}</span>
         `;
         li.onclick = () => loadFile(index);
         ul.appendChild(li);
@@ -306,44 +514,50 @@
       currentFileIndex = index;
       renderFileList();
       const item = fileList[index];
-      
-      document.getElementById('meta-display').innerHTML = `
-        <b>品系 (Variety):</b> ${item.parsed.line}<br>
-        <b>株號 (Individual):</b> ${item.parsed.plants.join(', ') || item.parsed.rawRange}
-      `;
+      if (!projectData[item.name]) initFileData(item.name);
+      const currentData = projectData[item.name];
+
+      document.getElementById('meta-variety').value = currentData.meta.variety;
+      document.getElementById('meta-treatment').value = currentData.meta.treatment;
+      document.getElementById('meta-repeat').value = currentData.meta.repeat;
+      document.getElementById('meta-dai').value = currentData.meta.dai;
+
+      // 顯示該張照片的比例尺標定狀態
+      const activeRatio = currentData.pxPerMm || globalPxPerMm;
+      document.getElementById('scale-ratio-display').innerText = activeRatio 
+        ? `${activeRatio.toFixed(2)} px/mm` 
+        : '未標定';
 
       const select = document.getElementById('plant-id-select');
       select.innerHTML = '<option value="">無 (比例尺)</option>';
       item.parsed.plants.forEach(p => {
         const opt = document.createElement('option');
         opt.value = p;
-        opt.textContent = `株號 #${p}`;
+        opt.textContent = `個體株號 #${p}`;
         select.appendChild(opt);
       });
+      if (item.parsed.plants.length > 0) select.value = item.parsed.plants[0];
 
-      // 顯示讀取提示，避免 Google Drive 串流下載時以為當掉
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = '#ffffff';
       ctx.font = '16px sans-serif';
       ctx.fillText('正在讀取高解析度影像，請稍候...', 40, 60);
 
-      if (currentObjectUrl) {
-        URL.revokeObjectURL(currentObjectUrl);
-      }
-
-      // 高速 ObjectURL 串流讀取
+      if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
       currentObjectUrl = URL.createObjectURL(item.file);
       const img = new Image();
       img.onload = () => {
         currentImage = img;
+        // 紀錄該張圖的真實解析度，供批次匯出 YOLO 正規化座標使用
+        projectData[item.name].imgWidth = img.width;
+        projectData[item.name].imgHeight = img.height;
+        saveToLocalStorage();
+
         resetView();
-        if (!annotations[item.name]) annotations[item.name] = [];
         renderAnnotationList();
         draw();
       };
-      img.onerror = () => {
-        alert('圖片讀取失敗！請確認 Google Drive Desktop 網路連線正常，或先在電腦資料夾按右鍵設為「可離線存取」。');
-      };
+      img.onerror = () => alert('圖片讀取失敗，請確認 Google Drive 資料夾已設為「可離線存取」。');
       img.src = currentObjectUrl;
     }
 
@@ -352,6 +566,23 @@
       panX = (canvas.width - currentImage.width * scale) / 2;
       panY = (canvas.height - currentImage.height * scale) / 2;
       document.getElementById('zoom-level').innerText = `${Math.round(scale * 100)}%`;
+    }
+
+    function markPlantMissing() {
+      if (currentFileIndex === -1) return;
+      const plantId = document.getElementById('plant-id-select').value;
+      if (!plantId) return alert('請先在「個體株號」下拉選單選擇缺株的編號！');
+
+      const fname = fileList[currentFileIndex].name;
+      const missingList = projectData[fname].missingPlants;
+      if (!missingList.includes(plantId)) {
+        missingList.push(plantId);
+        saveToLocalStorage();
+        renderAnnotationList();
+        renderFileList();
+      } else {
+        alert(`株號 #${plantId} 已經標記為缺株。`);
+      }
     }
 
     function draw() {
@@ -363,29 +594,36 @@
       ctx.scale(scale, scale);
       ctx.drawImage(currentImage, 0, 0);
 
-      const currentAnnos = annotations[fileList[currentFileIndex]?.name] || [];
-      currentAnnos.forEach((anno) => {
-        ctx.strokeStyle = CLASS_MAP[anno.type].color;
-        ctx.lineWidth = 2 / scale;
+      const fname = fileList[currentFileIndex]?.name;
+      const boxes = projectData[fname]?.boxes || [];
+
+      boxes.forEach((b) => {
+        const style = CLASS_MAP[b.type];
+        ctx.strokeStyle = style.color;
+        ctx.lineWidth = 2.5 / scale;
         
-        if (anno.type === 'scale_bar') {
+        if (b.type === 'scale_bar') {
           ctx.beginPath();
-          ctx.moveTo(anno.x1, anno.y1);
-          ctx.lineTo(anno.x2, anno.y2);
+          ctx.moveTo(b.x1, b.y1);
+          ctx.lineTo(b.x2, b.y2);
           ctx.stroke();
         } else {
-          ctx.strokeRect(anno.x, anno.y, anno.w, anno.h);
-          ctx.fillStyle = CLASS_MAP[anno.type].color + '33';
-          ctx.fillRect(anno.x, anno.y, anno.w, anno.h);
-          ctx.fillStyle = CLASS_MAP[anno.type].color;
-          ctx.font = `${13 / scale}px sans-serif`;
-          ctx.fillText(`${anno.type} ${anno.plantId ? '#' + anno.plantId : ''}`, anno.x, anno.y - (4 / scale));
+          ctx.strokeRect(b.x, b.y, b.w, b.h);
+          ctx.fillStyle = style.color + '28';
+          ctx.fillRect(b.x, b.y, b.w, b.h);
+          
+          ctx.fillStyle = style.color;
+          ctx.font = `bold ${14 / scale}px sans-serif`;
+          let tag = `${style.label}`;
+          if (b.plantId) tag += ` #${b.plantId}`;
+          if (b.type === 'UP_site' || b.type === 'DOWN_site') tag += ` [Rank:${b.rank}]`;
+          ctx.fillText(tag, b.x, b.y - (5 / scale));
         }
       });
 
       if (isDrawing && currentRect) {
         ctx.strokeStyle = CLASS_MAP[currentTool].color;
-        ctx.lineWidth = 2 / scale;
+        ctx.lineWidth = 2.5 / scale;
         if (currentTool === 'scale_bar') {
           ctx.beginPath();
           ctx.moveTo(currentRect.x1, currentRect.y1);
@@ -400,7 +638,7 @@
 
     canvas.addEventListener('wheel', (e) => {
       e.preventDefault();
-      const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+      const zoomFactor = e.deltaY < 0 ? 1.12 : 0.88;
       const mouseX = e.clientX - canvas.offsetLeft;
       const mouseY = e.clientY - canvas.offsetTop;
       panX = mouseX - (mouseX - panX) * zoomFactor;
@@ -454,22 +692,36 @@
 
     canvas.addEventListener('mouseup', () => {
       if (isDrawing && currentRect) {
-        const plantId = document.getElementById('plant-id-select').value;
-        const anno = { type: currentTool, plantId: plantId || null, ...currentRect };
-        const fileName = fileList[currentFileIndex].name;
-        annotations[fileName].push(anno);
-        
-        if (currentTool === 'scale_bar') {
-          const dx = anno.x2 - anno.x1;
-          const dy = anno.y2 - anno.y1;
-          const pxLength = Math.sqrt(dx*dx + dy*dy);
-          const mmVal = parseFloat(document.getElementById('scale-mm-input').value) || 10;
-          pxPerMm = pxLength / mmVal;
-          document.getElementById('scale-ratio-display').innerText = `標定比: ${pxPerMm.toFixed(2)} px/mm`;
-        }
+        const isValid = currentTool === 'scale_bar' 
+          ? Math.hypot(currentRect.x2 - currentRect.x1, currentRect.y2 - currentRect.y1) > 5
+          : (currentRect.w > 4 && currentRect.h > 4);
 
-        renderAnnotationList();
-        renderFileList();
+        if (isValid) {
+          const plantId = document.getElementById('plant-id-select').value;
+          const rankVal = document.getElementById('rank-select').value;
+          const box = {
+            type: currentTool,
+            plantId: plantId || null,
+            rank: (currentTool === 'UP_site' || currentTool === 'DOWN_site') ? rankVal : null,
+            ...currentRect
+          };
+
+          const fname = fileList[currentFileIndex].name;
+          projectData[fname].boxes.push(box);
+
+          if (currentTool === 'scale_bar') {
+            const pxLength = Math.hypot(box.x2 - box.x1, box.y2 - box.y1);
+            const mmVal = parseFloat(document.getElementById('scale-mm-input').value) || 10;
+            const ratio = pxLength / mmVal;
+            projectData[fname].pxPerMm = ratio;
+            globalPxPerMm = ratio;
+            document.getElementById('scale-ratio-display').innerText = `${ratio.toFixed(2)} px/mm`;
+          }
+
+          saveToLocalStorage();
+          renderAnnotationList();
+          renderFileList();
+        }
       }
       isDrawing = false;
       currentRect = null;
@@ -485,63 +737,123 @@
     function renderAnnotationList() {
       const ul = document.getElementById('annotation-list');
       ul.innerHTML = '';
-      const currentAnnos = annotations[fileList[currentFileIndex]?.name] || [];
-      currentAnnos.forEach((anno, index) => {
+      const fname = fileList[currentFileIndex]?.name;
+      if (!fname || !projectData[fname]) return;
+
+      projectData[fname].missingPlants.forEach((pid, idx) => {
         const li = document.createElement('li');
+        li.style.color = '#ffa502';
         li.innerHTML = `
-          <span>${anno.type} ${anno.plantId ? '(#'+anno.plantId+')' : ''}</span>
-          <button class="btn btn-danger" style="padding:2px 5px; font-size:0.65rem;" onclick="deleteAnno(${index})">刪除</button>
+          <span>[缺株 Missing] 個體 #${pid}</span>
+          <button class="btn btn-danger" style="padding:2px 6px; font-size:0.65rem;" onclick="removeMissing(${idx})">移除</button>
+        `;
+        ul.appendChild(li);
+      });
+
+      projectData[fname].boxes.forEach((b, idx) => {
+        const li = document.createElement('li');
+        let desc = `${CLASS_MAP[b.type].label}`;
+        if (b.plantId) desc += ` (#${b.plantId})`;
+        if (b.rank !== null) desc += ` | Rank: ${b.rank}`;
+        li.innerHTML = `
+          <span>${desc}</span>
+          <button class="btn btn-danger" style="padding:2px 6px; font-size:0.65rem;" onclick="deleteBox(${idx})">刪除</button>
         `;
         ul.appendChild(li);
       });
     }
 
-    function deleteAnno(index) {
-      const fileName = fileList[currentFileIndex].name;
-      annotations[fileName].splice(index, 1);
+    function removeMissing(idx) {
+      const fname = fileList[currentFileIndex].name;
+      projectData[fname].missingPlants.splice(idx, 1);
+      saveToLocalStorage();
+      renderAnnotationList();
+      renderFileList();
+    }
+
+    function deleteBox(idx) {
+      const fname = fileList[currentFileIndex].name;
+      projectData[fname].boxes.splice(idx, 1);
+      saveToLocalStorage();
       renderAnnotationList();
       renderFileList();
       draw();
     }
 
     function exportYOLO() {
-      if (fileList.length === 0) return alert('無可匯出資料');
-      fileList.forEach(item => {
-        const annos = annotations[item.name] || [];
+      const allFilenames = Object.keys(projectData);
+      if (allFilenames.length === 0) return alert('尚無資料可匯出');
+      let exportedCount = 0;
+
+      allFilenames.forEach(fname => {
+        const data = projectData[fname];
+        if (!data || data.boxes.length === 0 || !data.imgWidth || !data.imgHeight) return;
+
         let txtLines = [];
-        annos.forEach(a => {
-          if (a.type === 'scale_bar') return;
-          const classId = CLASS_MAP[a.type].id;
-          const xCenter = (a.x + a.w / 2) / currentImage.width;
-          const yCenter = (a.y + a.h / 2) / currentImage.height;
-          const wNorm = a.w / currentImage.width;
-          const hNorm = a.h / currentImage.height;
+        data.boxes.forEach(b => {
+          if (b.type === 'scale_bar') return;
+          const classId = CLASS_MAP[b.type].id;
+          const xCenter = (b.x + b.w / 2) / data.imgWidth;
+          const yCenter = (b.y + b.h / 2) / data.imgHeight;
+          const wNorm = b.w / data.imgWidth;
+          const hNorm = b.h / data.imgHeight;
           txtLines.push(`${classId} ${xCenter.toFixed(6)} ${yCenter.toFixed(6)} ${wNorm.toFixed(6)} ${hNorm.toFixed(6)}`);
         });
+
         if (txtLines.length > 0) {
-          const txtFileName = item.name.substring(0, item.name.lastIndexOf('.')) + '.txt';
+          const txtFileName = fname.substring(0, fname.lastIndexOf('.')) + '.txt';
           downloadFile(txtFileName, txtLines.join('\n'));
+          exportedCount++;
         }
       });
+
+      if (exportedCount > 0) {
+        downloadFile('classes.txt', 'leaf\nUP_site\nDOWN_site');
+      } else {
+        alert('尚未繪製任何 YOLO 方框標註');
+      }
     }
 
     function exportCSV() {
-      let csvRows = ['Variety,Individual,Side,Lesion_Area_px2,Lesion_Area_mm2,Filename'];
-      fileList.forEach(item => {
-        const annos = annotations[item.name] || [];
-        annos.forEach(a => {
-          if (a.type !== 'lesion_upper' && a.type !== 'lesion_lower') return;
-          const side = a.type === 'lesion_upper' ? 'Up' : 'Down';
-          const areaPx = a.w * a.h;
-          const areaMm = pxPerMm ? (areaPx / (pxPerMm * pxPerMm)).toFixed(2) : 'NA';
-          csvRows.push(`${item.parsed.line},${a.plantId || 'NA'},${side},${areaPx.toFixed(2)},${areaMm},${item.name}`);
+      const headers = [
+        'Variety', 'Treatment', 'Repeat', 'Individual', 'Side', 'DAI', 
+        'Rank', 'Status', 'Lesion_Area_px2', 'Lesion_Area_mm2', 'Filename'
+      ];
+      let csvRows = [headers.join(',')];
+
+      Object.keys(projectData).forEach(fname => {
+        const data = projectData[fname];
+        if (!data) return;
+        const m = data.meta;
+        const ratio = data.pxPerMm || globalPxPerMm;
+
+        data.missingPlants.forEach(pid => {
+          ['Up', 'Down'].forEach(side => {
+            csvRows.push([
+              m.variety, m.treatment, m.repeat, pid, side, m.dai,
+              'NA', 'Missing', 'NA', 'NA', fname
+            ].join(','));
+          });
+        });
+
+        data.boxes.forEach(b => {
+          if (b.type !== 'UP_site' && b.type !== 'DOWN_site') return;
+          const side = b.type === 'UP_site' ? 'Up' : 'Down';
+          const areaPx = (b.w * b.h).toFixed(2);
+          const areaMm = ratio ? ((b.w * b.h) / (ratio * ratio)).toFixed(2) : 'NA';
+
+          csvRows.push([
+            m.variety, m.treatment, m.repeat, b.plantId || 'NA', side, m.dai,
+            b.rank, 'Present', areaPx, areaMm, fname
+          ].join(','));
         });
       });
-      downloadFile('orchid_lesion_quantification.csv', csvRows.join('\n'));
+
+      downloadFile('orchid_phenotype_annotations.csv', csvRows.join('\n'));
     }
 
     function exportJSON() {
-      downloadFile('annotation_project.json', JSON.stringify(annotations, null, 2));
+      downloadFile('orchid_annotation_backup.json', JSON.stringify(projectData, null, 2));
     }
 
     function downloadFile(filename, text) {

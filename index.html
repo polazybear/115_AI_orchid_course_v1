@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>蝴蝶蘭黃葉病離葉接種影像標註系統 (Phalaenopsis Fusarium Wilt Annotator)</title>
+  <title>蝴蝶蘭黃葉病離葉接種影像標註與病斑量化系統</title>
   <style>
     :root {
       --bg-dark: #1e1e24;
@@ -15,7 +15,7 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background-color: var(--bg-dark);
       color: var(--text);
       display: flex;
@@ -23,9 +23,8 @@
       overflow: hidden;
     }
     
-    /* Layout */
     #sidebar-left {
-      width: 280px;
+      width: 290px;
       background-color: var(--bg-panel);
       border-right: 1px solid var(--border);
       display: flex;
@@ -45,17 +44,16 @@
       display: flex;
       flex-direction: column;
       padding: 15px;
-      gap: 15px;
+      gap: 12px;
       overflow-y: auto;
     }
 
-    /* Controls & Buttons */
     .section-title {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       text-transform: uppercase;
       letter-spacing: 1px;
       color: #8a8a9e;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     .btn {
       background-color: var(--accent);
@@ -71,9 +69,7 @@
     .btn-secondary { background-color: #4a4a5a; }
     .btn-secondary:hover { background-color: #5a5a6a; }
     .btn-danger { background-color: #d9534f; }
-    .btn-danger:hover { background-color: #c9302c; }
 
-    /* File List */
     #file-list {
       flex: 1;
       overflow-y: auto;
@@ -81,8 +77,8 @@
       border-top: 1px solid var(--border);
     }
     #file-list li {
-      padding: 10px 15px;
-      font-size: 0.85rem;
+      padding: 8px 12px;
+      font-size: 0.82rem;
       border-bottom: 1px solid var(--border);
       cursor: pointer;
       display: flex;
@@ -92,28 +88,27 @@
     #file-list li:hover { background-color: #353545; }
     #file-list li.active { background-color: #3d3d52; border-left: 4px solid var(--accent); }
     .badge {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       padding: 2px 6px;
       border-radius: 10px;
       background: #555;
     }
     .badge-done { background: #2e7d32; }
 
-    /* Tool Selector */
     .tool-group {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px;
+      gap: 6px;
     }
     .tool-btn {
       background: #353545;
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 10px;
+      padding: 8px;
       border-radius: 4px;
       cursor: pointer;
       text-align: center;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
     }
     .tool-btn.active {
       border-color: var(--accent);
@@ -122,42 +117,39 @@
       font-weight: bold;
     }
 
-    /* Metadata Panel */
     .meta-box {
       background-color: #20202b;
-      padding: 10px;
+      padding: 8px;
       border-radius: 4px;
-      font-size: 0.85rem;
-      line-height: 1.5;
+      font-size: 0.8rem;
+      line-height: 1.4;
     }
 
-    /* Annotation List */
     #annotation-list {
       list-style: none;
-      max-height: 200px;
+      max-height: 150px;
       overflow-y: auto;
       background: #20202b;
       border-radius: 4px;
     }
     #annotation-list li {
-      padding: 8px;
-      font-size: 0.8rem;
+      padding: 6px 8px;
+      font-size: 0.78rem;
       border-bottom: 1px solid #2e2e3e;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
-    /* Canvas Overlay UI */
     canvas { position: absolute; top: 0; left: 0; }
     #info-overlay {
       position: absolute;
       bottom: 10px;
       left: 10px;
       background: rgba(0,0,0,0.7);
-      padding: 5px 10px;
+      padding: 4px 8px;
       border-radius: 4px;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       pointer-events: none;
     }
   </style>
@@ -166,20 +158,18 @@
 
   <!-- 左側檔案列表 -->
   <div id="sidebar-left">
-    <div style="padding: 15px;">
-      <div class="section-title">檔案管理</div>
+    <div style="padding: 12px;">
+      <div class="section-title">影像載入 (請選單一天數資料夾)</div>
       <input type="file" id="folder-input" webkitdirectory directory multiple style="display:none;">
-      <input type="file" id="file-input" multiple accept="image/*" style="display:none;">
-      <button class="btn" style="width:100%; margin-bottom:8px;" onclick="document.getElementById('folder-input').click()">載入影像資料夾</button>
-      <button class="btn btn-secondary" style="width:100%;" onclick="document.getElementById('file-input').click()">選擇多個檔案</button>
+      <button class="btn" style="width:100%; margin-bottom:6px;" onclick="document.getElementById('folder-input').click()">載入單一 DAI 資料夾</button>
     </div>
     <ul id="file-list"></ul>
   </div>
 
-  <!-- 中間畫布區域 -->
+  <!-- 中間 Canvas 標註區 -->
   <div id="main-canvas-container">
     <canvas id="main-canvas"></canvas>
-    <div id="info-overlay">縮放: <span id="zoom-level">100%</span> | 提示: 滾輪縮放，按住 Space / 滑鼠中鍵平移</div>
+    <div id="info-overlay">縮放: <span id="zoom-level">100%</span> | 提示: 滾輪縮放，按住 Space 平移</div>
   </div>
 
   <!-- 右側控制面板 -->
@@ -193,61 +183,55 @@
       <div class="section-title">標註類別</div>
       <div class="tool-group">
         <button class="tool-btn active" data-class="leaf" onclick="setTool('leaf')">葉片 (Leaf)</button>
-        <button class="tool-btn" data-class="lesion_upper" onclick="setTool('lesion_upper')">上接種點病斑</button>
-        <button class="tool-btn" data-class="lesion_lower" onclick="setTool('lesion_lower')">下接種點病斑</button>
+        <button class="tool-btn" data-class="lesion_upper" onclick="setTool('lesion_upper')">上接種點 (Up)</button>
+        <button class="tool-btn" data-class="lesion_lower" onclick="setTool('lesion_lower')">下接種點 (Down)</button>
         <button class="tool-btn" data-class="scale_bar" onclick="setTool('scale_bar')">比例尺 (Scale)</button>
       </div>
     </div>
 
     <div>
-      <div class="section-title">綁定個體 (Orchid ID)</div>
-      <select id="plant-id-select" style="width:100%; padding:8px; background:#353545; color:white; border:1px solid var(--border); border-radius:4px;">
-        <option value="">無 (比例尺/全圖)</option>
+      <div class="section-title">綁定個體 (Individual ID)</div>
+      <select id="plant-id-select" style="width:100%; padding:6px; background:#353545; color:white; border:1px solid var(--border); border-radius:4px;">
+        <option value="">無 (比例尺)</option>
       </select>
     </div>
 
     <div>
       <div class="section-title">比例尺設定</div>
       <div style="display:flex; gap:5px; align-items:center;">
-        <input type="number" id="scale-mm-input" placeholder="比例尺實長(mm)" value="10" style="flex:1; padding:6px; background:#353545; color:white; border:1px solid var(--border); border-radius:4px;">
+        <input type="number" id="scale-mm-input" value="10" style="flex:1; padding:5px; background:#353545; color:white; border:1px solid var(--border); border-radius:4px;">
         <span style="font-size:0.8rem;">mm</span>
       </div>
-      <div style="font-size:0.8rem; color:#aaa; margin-top:4px;" id="scale-ratio-display">標定比: 未設定</div>
+      <div style="font-size:0.75rem; color:#aaa; margin-top:4px;" id="scale-ratio-display">標定比: 未設定</div>
     </div>
 
     <div>
-      <div class="section-title">標註物件清單</div>
+      <div class="section-title">已標註列表</div>
       <ul id="annotation-list"></ul>
     </div>
 
-    <div style="margin-top:auto; display:flex; flex-direction:column; gap:8px;">
+    <div style="margin-top:auto; display:flex; flex-direction:column; gap:6px;">
       <button class="btn" onclick="exportYOLO()">匯出 YOLO 格式 (.txt)</button>
-      <button class="btn btn-secondary" onclick="exportCSV()">匯出病害表現型表格 (.csv)</button>
-      <button class="btn btn-secondary" onclick="exportJSON()">存檔標註進度 (.json)</button>
+      <button class="btn btn-secondary" onclick="exportCSV()">匯出對齊 Rank 的 CSV 表格</button>
+      <button class="btn btn-secondary" onclick="exportJSON()">保存標註進度 (.json)</button>
     </div>
   </div>
 
   <script>
-    // 全域變數設定
     let fileList = [];
     let currentFileIndex = -1;
     let currentImage = new Image();
-    let annotations = {}; // key: filename, value: array of bbox/lines
+    let currentObjectUrl = null;
+    let annotations = {};
     let currentTool = 'leaf';
-    
-    // Canvas & View Transforms
+    let pxPerMm = null;
+
     const canvas = document.getElementById('main-canvas');
     const ctx = canvas.getContext('2d');
-    let scale = 1;
-    let panX = 0;
-    let panY = 0;
-    let isPanning = false;
-    let startPanX = 0, startPanY = 0;
-    let isDrawing = false;
-    let startX = 0, startY = 0;
-    let currentRect = null;
+    let scale = 1, panX = 0, panY = 0;
+    let isPanning = false, startPanX = 0, startPanY = 0;
+    let isDrawing = false, startX = 0, startY = 0, currentRect = null;
 
-    // 類別設定
     const CLASS_MAP = {
       'leaf': { id: 0, color: '#2ed573' },
       'lesion_upper': { id: 1, color: '#ff4757' },
@@ -255,7 +239,6 @@
       'scale_bar': { id: 3, color: '#1e90ff' }
     };
 
-    // 初始化 Canvas 大小
     function resizeCanvas() {
       const container = document.getElementById('main-canvas-container');
       canvas.width = container.clientWidth;
@@ -265,43 +248,42 @@
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
-    // 檔案載入與解析邏輯
-    document.getElementById('folder-input').addEventListener('change', handleFiles);
-    document.getElementById('file-input').addEventListener('change', handleFiles);
-
-    function handleFiles(e) {
+    document.getElementById('folder-input').addEventListener('change', (e) => {
       const files = Array.from(e.target.files).filter(f => f.type.startsWith('image/'));
-      fileList = files.map(f => {
-        const parsed = parseFilename(f.name);
-        return { file: f, name: f.name, parsed: parsed };
-      });
+      
+      // 防呆保護：若選到過大的上層資料夾（超過100張），跳出確認視窗防止當機
+      if (files.length > 100) {
+        const proceed = confirm(`偵測到您選取了 ${files.length} 張影像，這可能是上層總資料夾。一次載入過多高畫質照片可能導致網頁卡頓。\n\n建議點「取消」，並改選最內層的單一天數資料夾（如 2DAI）。確定仍要全部載入嗎？`);
+        if (!proceed) {
+          e.target.value = '';
+          return;
+        }
+      }
+
+      fileList = files.map(f => ({ file: f, name: f.name, parsed: parseFilename(f.name) }));
       renderFileList();
       if (fileList.length > 0) loadFile(0);
-    }
+    });
 
-    // 解析檔名邏輯: 支持 1-5 與 123678 跳號模式
     function parseFilename(filename) {
       const nameWithoutExt = filename.substring(0, filename.lastIndexOf('.')) || filename;
       const parts = nameWithoutExt.split('_');
       
       let vendor = parts[0] || 'Unknown';
-      let line = parts[1] || 'Unknown';
-      let dpi = parts[2] || 'DPI_NA';
-      let rawRange = parts[3] || '';
+      let rawRange = parts[parts.length - 1] || '';
+      let line = parts.slice(1, parts.length - 1).join('_') || 'Unknown';
 
       let plants = [];
       if (rawRange.includes('-')) {
-        // 連續號碼 (例如 1-5)
         const [start, end] = rawRange.split('-').map(Number);
         if (!isNaN(start) && !isNaN(end)) {
           for (let i = start; i <= end; i++) plants.push(i);
         }
       } else if (/^\d+$/.test(rawRange)) {
-        // 跳號拆解 (例如 123678 -> [1, 2, 3, 6, 7, 8])
-        plants = rawRange.split('').map(Number);
+        plants = rawRange.split('').map(n => n === '0' ? 10 : Number(n));
       }
 
-      return { vendor, line, dpi, plants, rawRange };
+      return { vendor, line, plants, rawRange };
     }
 
     function renderFileList() {
@@ -312,7 +294,7 @@
         li.className = index === currentFileIndex ? 'active' : '';
         const isDone = annotations[item.name] && annotations[item.name].length > 0;
         li.innerHTML = `
-          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.name}</span>
+          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:180px;">${item.name}</span>
           <span class="badge ${isDone ? 'badge-done' : ''}">${isDone ? '已標註' : '未標註'}</span>
         `;
         li.onclick = () => loadFile(index);
@@ -325,17 +307,13 @@
       renderFileList();
       const item = fileList[index];
       
-      // 更新 Metadata 面板
       document.getElementById('meta-display').innerHTML = `
-        <b>廠商:</b> ${item.parsed.vendor}<br>
-        <b>品系:</b> ${item.parsed.line}<br>
-        <b>DPI:</b> ${item.parsed.dpi}<br>
-        <b>株號:</b> ${item.parsed.plants.join(', ') || item.parsed.rawRange}
+        <b>品系 (Variety):</b> ${item.parsed.line}<br>
+        <b>株號 (Individual):</b> ${item.parsed.plants.join(', ') || item.parsed.rawRange}
       `;
 
-      // 更新株號選單
       const select = document.getElementById('plant-id-select');
-      select.innerHTML = '<option value="">無 (比例尺/全圖)</option>';
+      select.innerHTML = '<option value="">無 (比例尺)</option>';
       item.parsed.plants.forEach(p => {
         const opt = document.createElement('option');
         opt.value = p;
@@ -343,19 +321,30 @@
         select.appendChild(opt);
       });
 
-      // 載入圖片
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        currentImage = new Image();
-        currentImage.onload = () => {
-          resetView();
-          if (!annotations[item.name]) annotations[item.name] = [];
-          renderAnnotationList();
-          draw();
-        };
-        currentImage.src = e.target.result;
+      // 顯示讀取提示，避免 Google Drive 串流下載時以為當掉
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '16px sans-serif';
+      ctx.fillText('正在讀取高解析度影像，請稍候...', 40, 60);
+
+      if (currentObjectUrl) {
+        URL.revokeObjectURL(currentObjectUrl);
+      }
+
+      // 高速 ObjectURL 串流讀取
+      currentObjectUrl = URL.createObjectURL(item.file);
+      const img = new Image();
+      img.onload = () => {
+        currentImage = img;
+        resetView();
+        if (!annotations[item.name]) annotations[item.name] = [];
+        renderAnnotationList();
+        draw();
       };
-      reader.readAsDataURL(item.file);
+      img.onerror = () => {
+        alert('圖片讀取失敗！請確認 Google Drive Desktop 網路連線正常，或先在電腦資料夾按右鍵設為「可離線存取」。');
+      };
+      img.src = currentObjectUrl;
     }
 
     function resetView() {
@@ -365,7 +354,6 @@
       document.getElementById('zoom-level').innerText = `${Math.round(scale * 100)}%`;
     }
 
-    // 繪圖與 Canvas 渲染
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       if (!currentImage.src) return;
@@ -373,37 +361,28 @@
       ctx.save();
       ctx.translate(panX, panY);
       ctx.scale(scale, scale);
-
-      // 繪製原始影像
       ctx.drawImage(currentImage, 0, 0);
 
-      // 繪製標註框
       const currentAnnos = annotations[fileList[currentFileIndex]?.name] || [];
-      currentAnnos.forEach((anno, i) => {
+      currentAnnos.forEach((anno) => {
         ctx.strokeStyle = CLASS_MAP[anno.type].color;
         ctx.lineWidth = 2 / scale;
         
         if (anno.type === 'scale_bar') {
-          // 比例尺畫直線
           ctx.beginPath();
           ctx.moveTo(anno.x1, anno.y1);
           ctx.lineTo(anno.x2, anno.y2);
           ctx.stroke();
         } else {
-          // 一般邊界框
           ctx.strokeRect(anno.x, anno.y, anno.w, anno.h);
           ctx.fillStyle = CLASS_MAP[anno.type].color + '33';
           ctx.fillRect(anno.x, anno.y, anno.w, anno.h);
-          
-          // 標籤文字
           ctx.fillStyle = CLASS_MAP[anno.type].color;
-          ctx.font = `${14 / scale}px sans-serif`;
-          const label = `${anno.type} ${anno.plantId ? '#' + anno.plantId : ''}`;
-          ctx.fillText(label, anno.x, anno.y - (5 / scale));
+          ctx.font = `${13 / scale}px sans-serif`;
+          ctx.fillText(`${anno.type} ${anno.plantId ? '#' + anno.plantId : ''}`, anno.x, anno.y - (4 / scale));
         }
       });
 
-      // 繪製正在拖拉中的框
       if (isDrawing && currentRect) {
         ctx.strokeStyle = CLASS_MAP[currentTool].color;
         ctx.lineWidth = 2 / scale;
@@ -416,21 +395,17 @@
           ctx.strokeRect(currentRect.x, currentRect.y, currentRect.w, currentRect.h);
         }
       }
-
       ctx.restore();
     }
 
-    // 平移與縮放事件處理
     canvas.addEventListener('wheel', (e) => {
       e.preventDefault();
       const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
       const mouseX = e.clientX - canvas.offsetLeft;
       const mouseY = e.clientY - canvas.offsetTop;
-
       panX = mouseX - (mouseX - panX) * zoomFactor;
       panY = mouseY - (mouseY - panY) * zoomFactor;
       scale *= zoomFactor;
-
       document.getElementById('zoom-level').innerText = `${Math.round(scale * 100)}%`;
       draw();
     });
@@ -446,7 +421,6 @@
         return;
       }
       if (currentFileIndex === -1) return;
-
       const rect = canvas.getBoundingClientRect();
       startX = (e.clientX - rect.left - panX) / scale;
       startY = (e.clientY - rect.top - panY) / scale;
@@ -461,7 +435,6 @@
         return;
       }
       if (!isDrawing) return;
-
       const rect = canvas.getBoundingClientRect();
       const currX = (e.clientX - rect.left - panX) / scale;
       const currY = (e.clientY - rect.top - panY) / scale;
@@ -482,22 +455,16 @@
     canvas.addEventListener('mouseup', () => {
       if (isDrawing && currentRect) {
         const plantId = document.getElementById('plant-id-select').value;
-        const anno = {
-          type: currentTool,
-          plantId: plantId || null,
-          ...currentRect
-        };
-        
+        const anno = { type: currentTool, plantId: plantId || null, ...currentRect };
         const fileName = fileList[currentFileIndex].name;
         annotations[fileName].push(anno);
         
-        // 如果是比例尺，計算像素比例
         if (currentTool === 'scale_bar') {
           const dx = anno.x2 - anno.x1;
           const dy = anno.y2 - anno.y1;
           const pxLength = Math.sqrt(dx*dx + dy*dy);
           const mmVal = parseFloat(document.getElementById('scale-mm-input').value) || 10;
-          const pxPerMm = pxLength / mmVal;
+          pxPerMm = pxLength / mmVal;
           document.getElementById('scale-ratio-display').innerText = `標定比: ${pxPerMm.toFixed(2)} px/mm`;
         }
 
@@ -509,7 +476,6 @@
       draw();
     });
 
-    // 介面控制輔助函式
     function setTool(tool) {
       currentTool = tool;
       document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
@@ -520,12 +486,11 @@
       const ul = document.getElementById('annotation-list');
       ul.innerHTML = '';
       const currentAnnos = annotations[fileList[currentFileIndex]?.name] || [];
-      
       currentAnnos.forEach((anno, index) => {
         const li = document.createElement('li');
         li.innerHTML = `
           <span>${anno.type} ${anno.plantId ? '(#'+anno.plantId+')' : ''}</span>
-          <button class="btn btn-danger" style="padding:2px 6px; font-size:0.7rem;" onclick="deleteAnno(${index})">刪除</button>
+          <button class="btn btn-danger" style="padding:2px 5px; font-size:0.65rem;" onclick="deleteAnno(${index})">刪除</button>
         `;
         ul.appendChild(li);
       });
@@ -539,17 +504,13 @@
       draw();
     }
 
-    // 匯出功能 (YOLO .txt)
     function exportYOLO() {
       if (fileList.length === 0) return alert('無可匯出資料');
-      
-      let zipContent = [];
       fileList.forEach(item => {
         const annos = annotations[item.name] || [];
         let txtLines = [];
-        
         annos.forEach(a => {
-          if (a.type === 'scale_bar') return; // YOLO 忽略比例尺或另行處理
+          if (a.type === 'scale_bar') return;
           const classId = CLASS_MAP[a.type].id;
           const xCenter = (a.x + a.w / 2) / currentImage.width;
           const yCenter = (a.y + a.h / 2) / currentImage.height;
@@ -557,38 +518,30 @@
           const hNorm = a.h / currentImage.height;
           txtLines.push(`${classId} ${xCenter.toFixed(6)} ${yCenter.toFixed(6)} ${wNorm.toFixed(6)} ${hNorm.toFixed(6)}`);
         });
-
         if (txtLines.length > 0) {
           const txtFileName = item.name.substring(0, item.name.lastIndexOf('.')) + '.txt';
           downloadFile(txtFileName, txtLines.join('\n'));
         }
       });
-      
-      // 匯出 classes.txt
-      const classesTxt = Object.keys(CLASS_MAP).join('\n');
-      downloadFile('classes.txt', classesTxt);
     }
 
-    // 匯出科研 CSV 表格
     function exportCSV() {
-      let csvRows = ['Filename,Vendor,Line,DPI,Plant_ID,Type,Width_px,Height_px,Area_px2'];
-      
+      let csvRows = ['Variety,Individual,Side,Lesion_Area_px2,Lesion_Area_mm2,Filename'];
       fileList.forEach(item => {
         const annos = annotations[item.name] || [];
         annos.forEach(a => {
-          if (a.type === 'scale_bar') return;
-          const area = a.w * a.h;
-          csvRows.push(`${item.name},${item.parsed.vendor},${item.parsed.line},${item.parsed.dpi},${a.plantId || 'NA'},${a.type},${a.w.toFixed(2)},${a.h.toFixed(2)},${area.toFixed(2)}`);
+          if (a.type !== 'lesion_upper' && a.type !== 'lesion_lower') return;
+          const side = a.type === 'lesion_upper' ? 'Up' : 'Down';
+          const areaPx = a.w * a.h;
+          const areaMm = pxPerMm ? (areaPx / (pxPerMm * pxPerMm)).toFixed(2) : 'NA';
+          csvRows.push(`${item.parsed.line},${a.plantId || 'NA'},${side},${areaPx.toFixed(2)},${areaMm},${item.name}`);
         });
       });
-
-      downloadFile('phalaenopsis_annotations.csv', csvRows.join('\n'));
+      downloadFile('orchid_lesion_quantification.csv', csvRows.join('\n'));
     }
 
-    // 匯出進度 JSON
     function exportJSON() {
-      const dataStr = JSON.stringify(annotations, null, 2);
-      downloadFile('annotation_project.json', dataStr);
+      downloadFile('annotation_project.json', JSON.stringify(annotations, null, 2));
     }
 
     function downloadFile(filename, text) {
